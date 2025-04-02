@@ -1,9 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t patient_management_app .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name patient_management_app patient_management_app
-
+# This Dockerfile is designed for production, not development.
 ARG RUBY_VERSION=3.2.2
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
@@ -31,10 +28,10 @@ ENV RAILS_ENV="production" \
     LANG="C.UTF-8" \
     JEMALLOC_ENABLED="1"
 
-# Throw-away build stage to reduce size of final image
+# Build stage
 FROM base AS build
 
-# Install packages needed to build gems
+# Install build packages
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
@@ -54,31 +51,35 @@ COPY . .
 
 # Precompile bootsnap and assets
 RUN bundle exec bootsnap precompile app/ lib/ && \
-    chmod +x bin/rails bin/docker-entrypoint && \
+    chmod +x bin/rails && \
     SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 # Verify thrust is available
 RUN if [ ! -f ./bin/thrust ]; then echo "Thrust not found!"; exit 1; fi
 
-# Final stage for app image
+# Final stage
 FROM base
 
 # Copy built artifacts
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
+# Create entrypoint script as root
+RUN echo "#!/bin/bash\nset -e\n\nif [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f config/master.key ]; then\n  echo \"ERROR: RAILS_MASTER_KEY must be set or config/master.key must exist\" >&2\n  exit 1\nfi\n\nexec \"\$@\"" > /rails/bin/docker-entrypoint && \
+    chmod +x /rails/bin/docker-entrypoint
+
 # Create non-root user and set permissions
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
+    chown -R rails:rails db log storage tmp /rails/bin/docker-entrypoint
 
 USER rails:rails
-# Añade esto justo antes del ENTRYPOINT
-ENV RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
 
-# Y modifica el ENTRYPOINT para fallar rápido si falta la clave
-RUN echo "#!/bin/bash\nset -e\n\nif [ -z \"\$RAILS_MASTER_KEY\" ]; then\n  echo \"ERROR: RAILS_MASTER_KEY must be set\" >&2\n  exit 1\nfi\n\nexec \"\$@\"" > /rails/bin/docker-entrypoint && \
-    chmod +x /rails/bin/docker-entrypoint
+# Verify entrypoint
+RUN /rails/bin/docker-entrypoint echo "Entrypoint test passed"
+
+# Entrypoint prepares the database
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster
 EXPOSE 80
