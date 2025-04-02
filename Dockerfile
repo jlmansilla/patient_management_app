@@ -5,76 +5,82 @@ FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 WORKDIR /rails
 
-# Install base packages
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y \
-      curl \
-      libjemalloc2 \
-      libvips \
-      sqlite3 && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
-
-# Set production environment
-ENV RAILS_ENV="production" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
-    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so.2" \
-    RAILS_SERVE_STATIC_FILES="true" \
-    RAILS_LOG_TO_STDOUT="true" \
-    EDITOR="vi" \
-    LANG="C.UTF-8" \
-    JEMALLOC_ENABLED="1"
-
-# Build stage
-FROM base AS build
-
-# Install build packages
+# Instala dependencias esenciales
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
-      git \
-      libyaml-dev \
-      pkg-config && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+      curl \
+      libpq-dev \
+      libjemalloc2 \
+      libvips \
+      git && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install application gems
+# Variables de entorno para producción
+ENV RAILS_ENV=production \
+    BUNDLE_DEPLOYMENT=1 \
+    BUNDLE_PATH=/usr/local/bundle \
+    BUNDLE_WITHOUT=development:test \
+    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 \
+    RAILS_SERVE_STATIC_FILES=true \
+    RAILS_LOG_TO_STDOUT=true
+
+# Etapa de construcción
+FROM base AS build
+
+# Instala dependencias de construcción
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+      pkg-config \
+      libyaml-dev
+
+# Instala gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    bundle exec bootsnap precompile --gemfile
+    rm -rf ~/.bundle/ $BUNDLE_PATH/ruby/*/cache $BUNDLE_PATH/ruby/*/bundler/gems/*/.git
 
-# Copy application code
+# Copia la aplicación
 COPY . .
 
-# Set executable permissions for required binaries
-RUN chmod +x bin/rails bin/thrust
+# Precompila assets
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
-# Precompile bootsnap and assets
-RUN bundle exec bootsnap precompile app/ lib/ && \
-    SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
-
-# Final stage
+# Etapa final
 FROM base
 
-# Copy built artifacts
-COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
+# Instala solo runtime dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+      libpq5 \
+      postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copia artefactos desde la etapa de construcción
+COPY --from=build $BUNDLE_PATH $BUNDLE_PATH
 COPY --from=build /rails /rails
 
-# Create entrypoint script as root
-RUN echo "#!/bin/bash\nset -e\n\n# Wait for database if needed\nif [ \"\$WAIT_FOR_DB\" = \"true\" ]; then\n  echo \"Waiting for database...\"\n  until ./bin/rails db:version >/dev/null 2>&1; do\n    sleep 1\n  done\nfi\n\n# Check for credentials\nif [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f config/master.key ]; then\n  echo \"ERROR: Either RAILS_MASTER_KEY must be set or config/master.key must exist\" >&2\n  echo \"Current environment variables:\" >&2\n  printenv | sort >&2\n  exit 1\nfi\n\nexec \"\$@\"" > /rails/bin/docker-entrypoint && \
+# Configura entrypoint
+RUN echo "#!/bin/bash\n\
+set -e\n\n\
+# Verifica clave maestra\n\
+if [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f config/master.key ]; then\n\
+  echo \"ERROR: RAILS_MASTER_KEY must be set\" >&2\n\
+  exit 1\n\
+fi\n\n\
+# Ejecuta migraciones\n\
+if [ \"\$RUN_MIGRATIONS\" = \"true\" ]; then\n\
+  echo \"Running migrations...\"\n\
+  ./bin/rails db:prepare\n\
+fi\n\n\
+exec \"\$@\"" > /rails/bin/docker-entrypoint && \
     chmod +x /rails/bin/docker-entrypoint
 
-# Create non-root user and set permissions
-RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp /rails/bin/docker-entrypoint /rails/bin/thrust
+# Configura usuario no-root
+RUN useradd rails --create-home --shell /bin/bash && \
+    chown -R rails:rails /rails
 
 USER rails:rails
 
-# Entrypoint prepares the database
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
-
-# Start server via Thruster
-EXPOSE 80
+EXPOSE 3000
 CMD ["./bin/thrust", "./bin/rails", "server"]
