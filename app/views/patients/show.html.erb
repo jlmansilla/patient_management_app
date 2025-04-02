@@ -1,19 +1,44 @@
 <div class="container mx-auto px-4 py-8">
-  <div class="bg-white shadow-md rounded-lg p-6">
-    <h1 class="text-2xl font-bold text-gray-800 mb-4"><%= @patient.name %></h1>
-
-    <p class="mb-2"><strong class="font-semibold text-gray-700">Fecha de Nacimiento:</strong> <%= @patient.dob %></p>
-    <p class="mb-2"><strong class="font-semibold text-gray-700">Email:</strong> <%= @patient.email %></p>
-    <p class="mb-2"><strong class="font-semibold text-gray-700">Teléfono:</strong> <%= @patient.phone %></p>
-    <p class="mb-2"><strong class="font-semibold text-gray-700">Dirección:</strong> <%= @patient.address %></p>
-    <p class="mb-4"><strong class="font-semibold text-gray-700">Póliza de Seguro:</strong> <%= @patient.insurance_policy %></p>
-
-    <div class="mt-6 border-t pt-4">
-      <%= link_to "Editar Paciente", edit_patient_path(@patient), class: "bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2" %>
-      <%= link_to "Volver a la Lista", patients_path, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
+  <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="px-6 py-4">
+      <h1 class="text-2xl font-semibold text-gray-900 mb-4">Detalles del Paciente</h1>
+      <div class="border-t border-gray-200 pt-4">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Nombre Completo</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @patient.name %></dd>
+          </div>
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Fecha de Nacimiento</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @patient.dob %></dd>
+          </div>
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @patient.email %></dd>
+          </div>
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @patient.phone %></dd>
+          </div>
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">Dirección</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= simple_format(@patient.address) %></dd> <%# Use simple_format for line breaks %>
+          </div>
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">Póliza de Seguro</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @patient.insurance_policy %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <div class="bg-gray-50 px-6 py-3 flex justify-end space-x-3">
+      <%= link_to "Editar", edit_patient_path(@patient), class: "inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 active:bg-yellow-700 focus:outline-none focus:border-yellow-700 focus:ring ring-yellow-300 disabled:opacity-25 transition ease-in-out duration-150" %>
+      <%= link_to "Volver a la Lista", patients_path, class: "inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 active:bg-gray-700 focus:outline-none focus:border-gray-700 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150" %>
     </div>
   </div>
 
-  <%# Aquí podrías tener Turbo Frames para cargar secciones relacionadas como citas o historial médico %>
-  <%# <turbo-frame id="patient_appointments"> ... </turbo-frame> %>
+  <%# Potential Turbo Frames for related sections %>
+  <%# <div class="mt-8"> %>
+  <%#   <turbo-frame id="patient_appointments"> ... </turbo-frame> %>
+  <%# </div> %>
 </div>

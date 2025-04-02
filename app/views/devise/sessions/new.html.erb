@@ -1,26 +1,38 @@
-<h2>Log in</h2>
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-md mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
+    <div class="md:flex">
+      <div class="w-full px-6 py-8">
+        <h2 class="text-2xl font-semibold text-gray-800 text-center">Iniciar Sesión</h2>
 
-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
+        <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "mt-8" }) do |f| %>
+          <div class="mb-4">
+            <%= f.label :email, class: "block text-gray-700 text-sm font-bold mb-2" %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %>
+          </div>
 
-  <div class="field">
-    <%= f.label :password %><br />
-    <%= f.password_field :password, autocomplete: "current-password" %>
-  </div>
+          <div class="mb-6">
+            <%= f.label :password, class: "block text-gray-700 text-sm font-bold mb-2" %>
+            <%= f.password_field :password, autocomplete: "current-password", class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" %>
+          </div>
 
-  <% if devise_mapping.rememberable? %>
-    <div class="field">
-      <%= f.check_box :remember_me %>
-      <%= f.label :remember_me %>
+          <% if devise_mapping.rememberable? %>
+            <div class="flex items-center justify-between mb-4">
+              <label class="flex items-center">
+                <%= f.check_box :remember_me, class: "mr-2 leading-tight" %>
+                <span class="text-sm">Recordarme</span>
+              </label>
+              <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="<%= new_password_path(resource_name) %>">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+          <% end %>
+
+          <div class="flex items-center justify-between">
+            <%= f.submit "Iniciar Sesión", class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" %>
+            <%= render "devise/shared/links" %>
+          </div>
+        <% end %>
+      </div>
     </div>
-  <% end %>
-
-  <div class="actions">
-    <%= f.submit "Log in" %>
   </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>

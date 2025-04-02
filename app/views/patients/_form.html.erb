@@ -1,52 +1,41 @@
-<%# Este formulario se usa en new.html.erb y edit.html.erb %>
-<%# Usar `model: patient` permite que funcione tanto para crear como para editar %>
-<%= form_with(model: patient, class: "space-y-4") do |form| %>
-  <% if patient.errors.any? %>
-    <div id="error_explanation" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-      <strong class="font-bold"><%= pluralize(patient.errors.count, "error") %> impidieron guardar este paciente:</strong>
-      <ul class="mt-2 list-disc list-inside">
-        <% patient.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+<%# Shared form for new and edit views %>
+<%= form_with(model: patient, local: true) do |form| %>
+  <div class="shadow overflow-hidden sm:rounded-md">
+    <div class="px-4 py-5 bg-white sm:p-6">
+      <div class="grid grid-cols-6 gap-6">
+        <div class="col-span-6 sm:col-span-3">
+          <%= form.label :name, "Nombre Completo", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :name, class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+        </div>
 
-  <%# Ejemplo de cómo envolver el formulario en un frame para actualizaciones sin recarga %>
-  <%# <%= turbo_frame_tag dom_id(patient, "form") do %>
-    <div>
-      <%= form.label :name, "Nombre Completo", class: "block text-sm font-medium text-gray-700" %>
-      <%= form.text_field :name, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
-    </div>
+        <div class="col-span-6 sm:col-span-3">
+          <%= form.label :dob, "Fecha de Nacimiento", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.date_field :dob, class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+        </div>
 
-    <div>
-      <%= form.label :dob, "Fecha de Nacimiento", class: "block text-sm font-medium text-gray-700" %>
-      <%# Considera usar un date picker con Stimulus aquí %>
-      <%= form.date_field :dob, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
-    </div>
+        <div class="col-span-6 sm:col-span-3">
+          <%= form.label :email, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.email_field :email, class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+        </div>
 
-    <div>
-      <%= form.label :email, class: "block text-sm font-medium text-gray-700" %>
-      <%= form.email_field :email, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
-    </div>
+        <div class="col-span-6 sm:col-span-3">
+          <%= form.label :phone, "Teléfono", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :phone, class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+        </div>
 
-    <div>
-      <%= form.label :phone, "Teléfono", class: "block text-sm font-medium text-gray-700" %>
-      <%= form.telephone_field :phone, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
-    </div>
+        <div class="col-span-6">
+          <%= form.label :address, "Dirección", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :address, rows: "3", class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+        </div>
 
-    <div>
-      <%= form.label :address, "Dirección", class: "block text-sm font-medium text-gray-700" %>
-      <%= form.text_area :address, rows: 4, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+        <div class="col-span-6 sm:col-span-3">
+          <%= form.label :insurance_policy, "Póliza de Seguro", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :insurance_policy, class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+        </div>
+      </div>
     </div>
-
-     <div>
-      <%= form.label :insurance_policy, "Póliza de Seguro", class: "block text-sm font-medium text-gray-700" %>
-      <%= form.text_field :insurance_policy, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+      <%= form.submit "Guardar", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
     </div>
-
-    <div class="flex justify-end">
-      <%= form.submit "Guardar Paciente", class: "cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" %>
-    </div>
-  <%# <% end %> <%# Cierre del turbo_frame_tag si se usa %>
+  </div>
 <% end %>
