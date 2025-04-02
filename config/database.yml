@@ -13,11 +13,4 @@ test:
   database: myapp_test
 
 production:
-  adapter: postgresql
-  encoding: unicode
-  pool: 5
-  database: pacient_one
-  username: pacient_one_user
-  password: <%= ENV['DATABASE_PASSWORD'] %>
-  host: dpg-cvmrot7gi27c73fa6fbg-a
-  port: 5432
+  url: <%= ENV['DATABASE_URL'] %>
