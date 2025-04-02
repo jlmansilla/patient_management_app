@@ -1,0 +1,52 @@
+<%# Este formulario se usa en new.html.erb y edit.html.erb %>
+<%# Usar `model: patient` permite que funcione tanto para crear como para editar %>
+<%= form_with(model: patient, class: "space-y-4") do |form| %>
+  <% if patient.errors.any? %>
+    <div id="error_explanation" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+      <strong class="font-bold"><%= pluralize(patient.errors.count, "error") %> impidieron guardar este paciente:</strong>
+      <ul class="mt-2 list-disc list-inside">
+        <% patient.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Ejemplo de cómo envolver el formulario en un frame para actualizaciones sin recarga %>
+  <%# <%= turbo_frame_tag dom_id(patient, "form") do %>
+    <div>
+      <%= form.label :name, "Nombre Completo", class: "block text-sm font-medium text-gray-700" %>
+      <%= form.text_field :name, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= form.label :dob, "Fecha de Nacimiento", class: "block text-sm font-medium text-gray-700" %>
+      <%# Considera usar un date picker con Stimulus aquí %>
+      <%= form.date_field :dob, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= form.label :email, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.email_field :email, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= form.label :phone, "Teléfono", class: "block text-sm font-medium text-gray-700" %>
+      <%= form.telephone_field :phone, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= form.label :address, "Dirección", class: "block text-sm font-medium text-gray-700" %>
+      <%= form.text_area :address, rows: 4, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    </div>
+
+     <div>
+      <%= form.label :insurance_policy, "Póliza de Seguro", class: "block text-sm font-medium text-gray-700" %>
+      <%= form.text_field :insurance_policy, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+    </div>
+
+    <div class="flex justify-end">
+      <%= form.submit "Guardar Paciente", class: "cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+  <%# <% end %> <%# Cierre del turbo_frame_tag si se usa %>
+<% end %>

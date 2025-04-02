@@ -1,0 +1,19 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4"><%= @patient.name %></h1>
+
+    <p class="mb-2"><strong class="font-semibold text-gray-700">Fecha de Nacimiento:</strong> <%= @patient.dob %></p>
+    <p class="mb-2"><strong class="font-semibold text-gray-700">Email:</strong> <%= @patient.email %></p>
+    <p class="mb-2"><strong class="font-semibold text-gray-700">Teléfono:</strong> <%= @patient.phone %></p>
+    <p class="mb-2"><strong class="font-semibold text-gray-700">Dirección:</strong> <%= @patient.address %></p>
+    <p class="mb-4"><strong class="font-semibold text-gray-700">Póliza de Seguro:</strong> <%= @patient.insurance_policy %></p>
+
+    <div class="mt-6 border-t pt-4">
+      <%= link_to "Editar Paciente", edit_patient_path(@patient), class: "bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2" %>
+      <%= link_to "Volver a la Lista", patients_path, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+  </div>
+
+  <%# Aquí podrías tener Turbo Frames para cargar secciones relacionadas como citas o historial médico %>
+  <%# <turbo-frame id="patient_appointments"> ... </turbo-frame> %>
+</div>
