@@ -20,6 +20,7 @@ test:
 
 production:
   adapter: postgresql
-  encoding: unicode
-  pool: 5
-  url: <%= ENV['DATABASE_URL'] %>
+  database: pacient_one
+  username: ubuntu
+  password: postgres
+  host: localhost
