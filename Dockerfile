@@ -62,7 +62,7 @@ COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
 # Create entrypoint script as root
-RUN echo "#!/bin/bash\nset -e\n\nif [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f config/master.key ]; then\n  echo \"ERROR: RAILS_MASTER_KEY must be set or config/master.key must exist\" >&2\n  exit 1\nfi\n\nexec \"\$@\"" > /rails/bin/docker-entrypoint && \
+RUN echo "#!/bin/bash\nset -e\n\n# Wait for database if needed\nif [ \"\$WAIT_FOR_DB\" = \"true\" ]; then\n  echo \"Waiting for database...\"\n  until ./bin/rails db:version >/dev/null 2>&1; do\n    sleep 1\n  done\nfi\n\n# Check for credentials\nif [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f config/master.key ]; then\n  echo \"ERROR: Either RAILS_MASTER_KEY must be set or config/master.key must exist\" >&2\n  echo \"Current environment variables:\" >&2\n  printenv | sort >&2\n  exit 1\nfi\n\nexec \"\$@\"" > /rails/bin/docker-entrypoint && \
     chmod +x /rails/bin/docker-entrypoint
 
 # Create non-root user and set permissions
