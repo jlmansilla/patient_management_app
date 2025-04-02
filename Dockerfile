@@ -1,10 +1,8 @@
 # syntax=docker/dockerfile:1
 
-# This Dockerfile is designed for production, not development.
 ARG RUBY_VERSION=3.2.2
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
-# Rails app lives here
 WORKDIR /rails
 
 # Install base packages
@@ -74,9 +72,6 @@ RUN groupadd --system --gid 1000 rails && \
     chown -R rails:rails db log storage tmp /rails/bin/docker-entrypoint
 
 USER rails:rails
-
-# Verify entrypoint
-RUN /rails/bin/docker-entrypoint echo "Entrypoint test passed"
 
 # Entrypoint prepares the database
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
