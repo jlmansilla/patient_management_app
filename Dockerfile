@@ -5,42 +5,44 @@ FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 WORKDIR /rails
 
-# Instala dependencias esenciales
+# Instala dependencias base
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      build-essential \
       curl \
-      libpq-dev \
       libjemalloc2 \
       libvips \
-      git && \
+      libpq5 \
+      postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
-# Variables de entorno para producción
+# Variables de entorno
 ENV RAILS_ENV=production \
     BUNDLE_DEPLOYMENT=1 \
     BUNDLE_PATH=/usr/local/bundle \
     BUNDLE_WITHOUT=development:test \
-    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 \
-    RAILS_SERVE_STATIC_FILES=true \
-    RAILS_LOG_TO_STDOUT=true
+    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 
 # Etapa de construcción
 FROM base AS build
 
-# Instala dependencias de construcción
+# Dependencias de compilación
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      pkg-config \
-      libyaml-dev
+      build-essential \
+      git \
+      libpq-dev \
+      pkg-config
 
 # Instala gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
-    rm -rf ~/.bundle/ $BUNDLE_PATH/ruby/*/cache $BUNDLE_PATH/ruby/*/bundler/gems/*/.git
+    rm -rf ~/.bundle/ $BUNDLE_PATH/ruby/*/cache
 
-# Copia la aplicación
+# Copia aplicación
 COPY . .
+
+# Establece permisos de ejecución
+RUN chmod +x bin/rails bin/thrust
 
 # Precompila assets
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
@@ -48,38 +50,32 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 # Etapa final
 FROM base
 
-# Instala solo runtime dependencies
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y \
-      libpq5 \
-      postgresql-client && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copia artefactos desde la etapa de construcción
+# Copia artefactos
 COPY --from=build $BUNDLE_PATH $BUNDLE_PATH
 COPY --from=build /rails /rails
 
 # Configura entrypoint
 RUN echo "#!/bin/bash\n\
 set -e\n\n\
-# Verifica clave maestra\n\
+# Verifica credenciales\n\
 if [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f config/master.key ]; then\n\
-  echo \"ERROR: RAILS_MASTER_KEY must be set\" >&2\n\
+  echo \"Error: RAILS_MASTER_KEY requerida\" >&2\n\
   exit 1\n\
 fi\n\n\
-# Ejecuta migraciones\n\
-if [ \"\$RUN_MIGRATIONS\" = \"true\" ]; then\n\
-  echo \"Running migrations...\"\n\
+# Ejecuta migraciones si es necesario\n\
+if [ -n \"\$DATABASE_URL\" ] && [ \"\$SKIP_MIGRATIONS\" != \"true\" ]; then\n\
+  echo \"Ejecutando migraciones...\"\n\
   ./bin/rails db:prepare\n\
 fi\n\n\
 exec \"\$@\"" > /rails/bin/docker-entrypoint && \
     chmod +x /rails/bin/docker-entrypoint
 
-# Configura usuario no-root
-RUN useradd rails --create-home --shell /bin/bash && \
-    chown -R rails:rails /rails
+# Configura usuario y permisos
+RUN useradd -m rails && \
+    chown -R rails:rails /rails && \
+    chmod 755 /rails/bin/*
 
-USER rails:rails
+USER rails
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 EXPOSE 3000
