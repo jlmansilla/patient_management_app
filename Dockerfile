@@ -73,9 +73,12 @@ RUN groupadd --system --gid 1000 rails && \
     chown -R rails:rails db log storage tmp
 
 USER rails:rails
+# Añade esto justo antes del ENTRYPOINT
+ENV RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
 
-# Entrypoint prepares the database
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+# Y modifica el ENTRYPOINT para fallar rápido si falta la clave
+RUN echo "#!/bin/bash\nset -e\n\nif [ -z \"\$RAILS_MASTER_KEY\" ]; then\n  echo \"ERROR: RAILS_MASTER_KEY must be set\" >&2\n  exit 1\nfi\n\nexec \"\$@\"" > /rails/bin/docker-entrypoint && \
+    chmod +x /rails/bin/docker-entrypoint
 
 # Start server via Thruster
 EXPOSE 80
