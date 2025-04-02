@@ -1,27 +1,28 @@
 name: CI
 
-on:
-  pull_request:
-  push:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
-  scan_ruby:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-      - name: Set execute permissions for Brakeman
-        run: chmod +x bin/brakeman
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.2.2
+
+    - name: Install dependencies
+      run: bundle install --jobs 4 --retry 3
+
+    - name: Set executable permission for brakeman
+      run: chmod +x bin/brakeman
+
+    - name: Scan for common Rails security vulnerabilities using static analysis
+      run: bin/brakeman
 
   scan_js:
     runs-on: ubuntu-latest
