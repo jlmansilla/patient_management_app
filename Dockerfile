@@ -47,13 +47,12 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
+# Set executable permissions for required binaries
+RUN chmod +x bin/rails bin/thrust
+
 # Precompile bootsnap and assets
 RUN bundle exec bootsnap precompile app/ lib/ && \
-    chmod +x bin/rails && \
     SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
-
-# Verify thrust is available
-RUN if [ ! -f ./bin/thrust ]; then echo "Thrust not found!"; exit 1; fi
 
 # Final stage
 FROM base
@@ -69,7 +68,7 @@ RUN echo "#!/bin/bash\nset -e\n\nif [ -z \"\$RAILS_MASTER_KEY\" ] && [ ! -f conf
 # Create non-root user and set permissions
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp /rails/bin/docker-entrypoint
+    chown -R rails:rails db log storage tmp /rails/bin/docker-entrypoint /rails/bin/thrust
 
 USER rails:rails
 
