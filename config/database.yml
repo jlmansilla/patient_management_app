@@ -20,4 +20,7 @@ test:
 
 production:
   adapter: postgresql
-  url: <%= ENV['DATABASE_URL'] %>
+  database: patient_management_production
+  username: ubuntu
+  password: postgres
+  host: localhost
