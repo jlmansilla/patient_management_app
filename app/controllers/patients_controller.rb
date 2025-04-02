@@ -1,7 +1,5 @@
 # app/controllers/patients_controller.rb
 class PatientsController < ApplicationController
-  # Asegura que el usuario esté autenticado para todas las acciones
-  before_action :authenticate_user!
   # Encuentra el paciente para acciones específicas
   before_action :set_patient, only: %i[ show edit update destroy ]
 
