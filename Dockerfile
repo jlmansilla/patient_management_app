@@ -55,9 +55,15 @@ if [ -z \"\$DATABASE_URL\" ]; then\n\
   echo \"Por favor, verifica que tienes un servicio PostgreSQL añadido en Render.\" >&2\n\
   exit 1\n\
 fi\n\n\
+# Parsear URL para pg_isready\n\
+PGHOST=\$(echo \$DATABASE_URL | sed -E 's/^postgres:\/\/[^@]+@([^:]+):([0-9]+)\/.+$/\1/')\n\
+PGPORT=\$(echo \$DATABASE_URL | sed -E 's/^postgres:\/\/[^@]+@([^:]+):([0-9]+)\/.+$/\2/')\n\
+PGUSER=\$(echo \$DATABASE_URL | sed -E 's/^postgres:\/\/([^:]+):.+$/\1/')\n\
+PGDATABASE=\$(echo \$DATABASE_URL | sed -E 's/^postgres:\/\/[^\/]+\/(.+)$/\1/')\n\
+\n\
 # Esperar a PostgreSQL con timeout\n\
-echo \"Verificando conexión a PostgreSQL en \$DATABASE_URL\"\n\
-timeout 30s bash -c \"until pg_isready -d \$DATABASE_URL; do sleep 2; done\" || {\n\
+echo \"Verificando conexión a PostgreSQL en \$PGHOST:\$PGPORT con usuario \$PGUSER y base de datos \$PGDATABASE\"\n\
+timeout 30s bash -c \"until pg_isready -h \$PGHOST -p \$PGPORT -U \$PGUSER -d \$PGDATABASE; do sleep 2; done\" || {\n\
   echo \"ERROR: No se pudo conectar a PostgreSQL\" >&2\n\
   exit 1\n\
 }\n\n\
@@ -75,4 +81,4 @@ USER rails
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 EXPOSE 3000
-CMD ["./bin/thrust", "./bin/rails", "server"]
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
