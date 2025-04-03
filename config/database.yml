@@ -19,12 +19,7 @@ test:
   host: localhost
 
 production:
-  adapter: postgresql
+  aadapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  host: <%= ENV['PGHOST'] %>
-  port: <%= ENV['PGPORT'] %>
-  database: <%= ENV['PGDATABASE'] %>
-  username: <%= ENV['PGUSER'] %>
-  password: <%= ENV['PGPASSWORD'] %>
-  sslmode: require
+  url: <%= ENV['DATABASE_URL'] %>
