@@ -12,7 +12,7 @@ RUN bundle install --jobs 4
 # Copia el resto de la aplicación
 COPY . .
 # Precompila los assets
-RUN SECRET_KEY_BASE=dummy rails assets:precompile
+RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
 
 # Etapa 2: Ejecución
 FROM ruby:3.2-slim
@@ -38,4 +38,4 @@ RUN echo '#!/bin/bash\nset -e\n\n# Ejecutar migraciones si es necesario\nif [ "$
 EXPOSE 3000
 # Punto de entrada
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["rails", "server", "-b", "0.0.0.0"]
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
