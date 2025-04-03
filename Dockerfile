@@ -29,9 +29,11 @@ RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends libpq-dev postgresql-client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-# Copia el script de entrada
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+
+# Crear el script de entrada directamente
+RUN echo '#!/bin/bash\nset -e\n\n# Ejecutar migraciones si es necesario\nif [ "${AUTO_MIGRATE}" = "true" ]; then\n  bundle exec rails db:migrate\nfi\n\n# Ejecutar el comando proporcionado\nexec "$@"' > /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
 # Puerto de la aplicación
 EXPOSE 3000
 # Punto de entrada
