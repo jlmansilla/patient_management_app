@@ -20,7 +20,11 @@ test:
 
 production:
   adapter: postgresql
-  database: pacient_one
-  username: ubuntu
-  password: postgres
-  host: localhost
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV['PGHOST'] %>
+  port: <%= ENV['PGPORT'] %>
+  database: <%= ENV['PGDATABASE'] %>
+  username: <%= ENV['PGUSER'] %>
+  password: <%= ENV['PGPASSWORD'] %>
+  sslmode: require
